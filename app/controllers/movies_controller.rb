@@ -77,12 +77,5 @@ class MoviesController < ApplicationController
     redirect_to movies_path
   end
 
-  def sortbytitle
-    @movies = Movie.order("title").all
-  end
-
-  def sortbydate
-    @movies = Movie.order("release_date").all
-  end
 
 end
