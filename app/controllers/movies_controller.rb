@@ -11,7 +11,42 @@ class MoviesController < ApplicationController
   end
 
   def index
-    @movies = Movie.all
+    @all_ratings = Movie.uniq.pluck(:rating)
+    if_redirect = false
+
+    if params[:ratings]
+      session[:ratings]= params[:ratings].keys
+    else if session[:ratings]
+           if_redirect = true
+         else
+           session[:ratings] = @all_ratings
+         end
+    end
+    @selected_ratings = session[:ratings]
+
+    if params[:sortby]
+      session[:sortby] = params[:sortby]
+    else if session[:sortby]
+           if_redirect = true
+         end
+    end
+
+    @movies = Movie.where(:rating => session[:ratings]).order(session[:sortby]).all
+
+    if session[:sortby]=='title'
+      @title_header = 'hilite'
+    end
+    if session[:sortby]=='release_date'
+      @release_date_header = 'hilite'
+    end
+
+    if if_redirect
+      ratings_hash = {}
+      session[:ratings].each do |selected|
+        ratings_hash[selected] = 1
+      end
+      redirect_to movies_path(:ratings => ratings_hash, :sortby => session[:sortby])
+    end
   end
 
   def new
@@ -40,6 +75,14 @@ class MoviesController < ApplicationController
     @movie.destroy
     flash[:notice] = "Movie '#{@movie.title}' deleted."
     redirect_to movies_path
+  end
+
+  def sortbytitle
+    @movies = Movie.order("title").all
+  end
+
+  def sortbydate
+    @movies = Movie.order("release_date").all
   end
 
 end
